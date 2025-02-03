@@ -19,7 +19,7 @@ const docData = [
 ]
 
 const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
-const db = client.db(ASTRA_DB_API_ENDPOINT, ASTRA_DB_NAMESPACE);
+const db = client.db(ASTRA_DB_API_ENDPOINT, { namespace: ASTRA_DB_NAMESPACE });
 
 const splitter = new RecursiveCharacterTextSplitter({
 	chunkSize: 512,
