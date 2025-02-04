@@ -1,0 +1,81 @@
+* {
+	font-family: Verdana, Tahoma, sans-serif;
+}
+
+body{
+	margin: 0;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	background-color: gray;
+}
+main {
+	width: 80vw;
+	height: 80vh;
+	background: linear-gradient(to bottom, #02af87, #97d7e4);
+	border-radius: 15px;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 20px;
+	text-align: center;
+	color: #182220;
+}
+
+section{
+	width: 100%;
+}
+
+section.populated{
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	overflow: scroll;
+}
+
+.starter-text {
+	padding: 0 80px;
+}
+
+form{
+	height: 50px;
+	width: 100%;
+	display: flex;
+	border-top: #182220 2px solid;
+	padding-top: 20px;
+	border-radius: 0 0 10px 10px;
+	overflow: hidden;
+}
+
+input.question-box{
+	width: 80%;
+	height: 100%;
+	border: none;
+	border-radius: 20px;
+	padding: 0 10px;
+	font-size: 1e;
+}
+
+input[type="submit"]{
+	width: 20%;
+	height: 100%;
+	border: rgb(4, 150, 82) 2px solid;
+	border-radius: 30px;
+	background-color: #4cd4b9;
+	color: #037b33;
+	font-size: 1em;
+	font-weight: bold;
+	cursor: pointer;
+}
+input:focus{
+	outline: none;
+}
+input[type="submit"]:hover{
+	background-color: #037b33;
+	color: #4cd4b9;
+	transition: 0.55s;
+}
