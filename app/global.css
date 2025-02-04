@@ -79,3 +79,31 @@ input[type="submit"]:hover{
 	color: #4cd4b9;
 	transition: 0.55s;
 }
+
+.bubble {
+	margin: 8px;
+	padding: 8px;
+	font-size: 15px;
+	border: none;
+	color: #4cd4b9;
+	box-shadow: #037b33 0 8px 24px;
+	width: 80%;
+	text-align: left;
+}
+.loader {
+	margin: 16px;
+	width: 64px;
+	aspect-ratio: 6;
+	background: 
+		no-repeat radial-gradient(circle closest-side, #0fc959 90%, #0000) 0% 50%,
+		no-repeat radial-gradient(circle closest-side, #0cb04e 90%, #0000) 50% 50%,
+		no-repeat radial-gradient(circle closest-side, #037b33 90%, #0000) 100% 50%;
+	background-size: calc(100%/3) 100%;
+	animation: loading 1s infinite linear;
+}
+
+@keyframes loading{
+	33% { background-size: calc(100%/3) 0, calc(100%/3) 100%, calc(100%/3) 100%;}
+	50% { background-size: calc(100%/3) 100%, calc(100%/3) 0, calc(100%/3) 100%;}
+	66% { background-size: calc(100%/3) 100%, calc(100%/3) 100%, calc(100%/3) 0;}
+}
