@@ -77,7 +77,7 @@ input:focus{
 input[type="submit"]:hover{
 	background-color: #037b33;
 	color: #4cd4b9;
-	transition: 0.55s;
+	transition: 0.4s;
 }
 
 .bubble {
@@ -93,14 +93,39 @@ input[type="submit"]:hover{
 
 .bubble.user {
 	border-radius: 20px 20px 0 20px;
-	background-color: #4cd4b9;
+	background-color: #037b33;
+	color: #bdf3d2;
 	margin-left: auto;
 }
 
 .bubble.assistant {
 	border-radius: 20px 20px 20px 0;
 	background-color: #037b33;
+	color:#bdf3d2;
 	margin-right: auto;
+}
+.prompt-suggestion{
+	display: flex;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	height: 0vh;
+}
+.prompt-suggestion-button{
+	border: none;
+	border-radius: 20px;
+	background: none;
+	color: #037b33;
+	padding: 10px;
+	margin: 5px;
+	cursor: pointer;
+}
+.prompt-suggestion-button:focus{
+	outline: none;
+}
+.prompt-suggestion-button:hover {
+	background-color: #4cd4b9;
+	color: #bdf3d2;
+	transition: 0.4s;
 }
 
 .loader {
