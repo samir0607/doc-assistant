@@ -41,6 +41,7 @@ export async function POST(req: Request) {
 			docContext = JSON.stringify(docsMap)
 		} catch (e){
 			console.error("Error querying Database...")
+			throw e
 		}
 		const template = {
 			role: "system",
