@@ -90,6 +90,19 @@ input[type="submit"]:hover{
 	width: 80%;
 	text-align: left;
 }
+
+.bubble.user {
+	border-radius: 20px 20px 0 20px;
+	background-color: #4cd4b9;
+	margin-left: auto;
+}
+
+.bubble.assistant {
+	border-radius: 20px 20px 20px 0;
+	background-color: #037b33;
+	margin-right: auto;
+}
+
 .loader {
 	margin: 16px;
 	width: 64px;

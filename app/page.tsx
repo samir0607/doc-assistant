@@ -10,7 +10,15 @@ import { useChat } from "ai/react"
 
 const Home = () => {
 	const { append, isLoading, messages, input, handleInputChange, handleSubmit } = useChat()
-	const noMessages = false;
+	const noMessages = !messages || messages.length === 0;
+	const handlePrompt = ( promptText ) => {
+		const msg: Message = {
+			id: crypto.randomUUID(),
+			content: promptText,
+			role: "user"
+		}
+		append(msg)
+	}
 	return (
 		<main>
 			<Image src={rocketLogo} alt="Rocket.Chat" />
@@ -21,7 +29,7 @@ const Home = () => {
 						Hi, I'm R8, Rocket.Chat's AI assistant trained on documentation and other content.
 						</p>
 						<br/>
-						<PromptSuggestion />
+						<PromptSuggestion onPromptClick={handlePrompt} />
 					</>
 				):(
 					<>
