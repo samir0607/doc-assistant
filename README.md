@@ -1,4 +1,6 @@
-### RB(RocketBot - Here to help you!!!)
+# RB(RocketBot - Here to help you!!!)
+
+
 
 ## Getting Started
 
@@ -22,7 +24,7 @@ OPENAI_API_KEY=""
 
 ## Store vectors in your Database
 ```bash
-npm run seed`\
+npm run seed
 ```
 ## Finally
 ```bash
