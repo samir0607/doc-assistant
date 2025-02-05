@@ -10,7 +10,7 @@ type SimilarityMetric = "dot_product" | "cosine" | "euclidean"
 
 config();
 const { ASTRA_DB_APPLICATION_TOKEN,
-	ASTRA_DB_NAMESPACE, ASTRA_DB_COLLECTON, ASTRA_DB_API_ENDPOINT
+	ASTRA_DB_NAMESPACE, ASTRA_DB_COLLECTION, ASTRA_DB_API_ENDPOINT
  } = process.env;
 const openai = new OpenAI();
 
@@ -41,7 +41,7 @@ const splitter = new RecursiveCharacterTextSplitter({
 });
 
 const createCollection = async (similarityMetric: SimilarityMetric = "dot_product") => {
-	const res = await db.createCollection(ASTRA_DB_COLLECTON, {
+	const res = await db.createCollection(ASTRA_DB_COLLECTION, {
 		vector: {
 			dimension: 1536,
 			metric: similarityMetric,
@@ -51,7 +51,7 @@ const createCollection = async (similarityMetric: SimilarityMetric = "dot_produc
 }
 
 const loadSampleData = async () => {
-	const collection = await db.collection(ASTRA_DB_COLLECTON)
+	const collection = await db.collection(ASTRA_DB_COLLECTION)
 	for await (const url of docData) {
 		const content = await scrapePage(url);
 		const chunks = await splitter.splitText(content);
