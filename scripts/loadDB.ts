@@ -16,6 +16,20 @@ const openai = new OpenAI();
 
 const docData = [
 	'https://docs.rocket.chat/',
+	'https://docs.rocket.chat/docs',
+	'https://docs.rocket.chat/docs/our-plans',
+	'https://docs.rocket.chat/docs/deploy-rocketchat',
+	'https://docs.rocket.chat/docs/system-requirements',
+	'https://docs.rocket.chat/docs/deploy-with-docker-docker-compose',
+	'https://docs.rocket.chat/docs/deploy-with-aws',
+	'https://docs.rocket.chat/docs/deploy-with-kubernetes',
+	'https://docs.rocket.chat/docs/configuring-rocketchat-with-kubernetes',
+	'https://docs.rocket.chat/docs/deploy-with-snaps',
+	'https://docs.rocket.chat/docs/updating-rocketchat',
+	'https://developer.rocket.chat/docs/rocketchat-developer',
+	'https://developer.rocket.chat/docs/architecture-and-components',
+	'https://developer.rocket.chat/docs/deploy-rocketchat',
+	'https://gist.github.com/reetp/b0ba4e3d0ea2ff48ca9da00a5a647d42#introduction'
 ]
 
 const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
