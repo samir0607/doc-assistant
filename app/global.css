@@ -75,7 +75,7 @@ input:focus{
 	outline: none;
 }
 input[type="submit"]:hover{
-	background-color: #037b33;
+	background-color: #37a764;
 	color: #4cd4b9;
 	transition: 0.4s;
 }
@@ -111,7 +111,7 @@ input[type="submit"]:hover{
 	height: 0vh;
 }
 .prompt-suggestion-button{
-	border: none;
+	border: 1px solid white;
 	border-radius: 20px;
 	background: none;
 	color: #037b33;
@@ -123,7 +123,8 @@ input[type="submit"]:hover{
 	outline: none;
 }
 .prompt-suggestion-button:hover {
-	background-color: #4cd4b9;
+	background-color: #3db49c;
+	border: none;
 	color: #bdf3d2;
 	transition: 0.4s;
 }

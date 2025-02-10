@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 			content: `You are an AI assistant who knows about Rocket.Chat documentation. 
 			Use the context below to augment what you know about Rocket.Chat documentation.
 			The context will provide you with the most recent data from docs.rocket.chat the official documentation page of rocket.chat and others related to rocket chat apps like embedded chats.
-			If the context doen't include the information you need answer based on you exixting knowledge and don't mention the source of your information or what the context does or doesn't include.
+			If the context doesn't include the information don't answer based on you existing knowledge.
 			Format responses using markdown where applicable and don't return images.
 		---------------
 		START CONTEXT
