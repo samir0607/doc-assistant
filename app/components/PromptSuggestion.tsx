@@ -3,8 +3,8 @@ import PromptSuggestionsButton from "./PromptSuggestionButton";
 const PromptSuggestion = ({ onPromptClick }) => {
 	const prompts = [
 		"Set up development environment for Rocket Chat?",
-		"Prerequisites to deploy Rocket Chat Server?",
-		"Ways to deploy Rocket Chat Server?",
+		"Prerequisites to deploy Rocket Chat?",
+		"Ways to deploy Rocket Chat?",
 		"Brief me about Rocket Chat",
 	]
 	return (
