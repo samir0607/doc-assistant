@@ -76,7 +76,7 @@ input:focus{
 }
 input[type="submit"]:hover{
 	background-color: #37a764;
-	color: #4cd4b9;
+	color: #344e41;
 	transition: 0.4s;
 }
 
@@ -93,14 +93,14 @@ input[type="submit"]:hover{
 
 .bubble.user {
 	border-radius: 20px 20px 0 20px;
-	background-color: #037b33;
+	background-color: #1eb159;
 	color: #bdf3d2;
 	margin-left: auto;
 }
 
 .bubble.assistant {
 	border-radius: 20px 20px 20px 0;
-	background-color: #037b33;
+	background-color: #48805e;
 	color:#bdf3d2;
 	margin-right: auto;
 }
@@ -119,9 +119,7 @@ input[type="submit"]:hover{
 	margin: 5px;
 	cursor: pointer;
 }
-.prompt-suggestion-button:focus{
-	outline: none;
-}
+
 .prompt-suggestion-button:hover {
 	background-color: #3db49c;
 	border: none;
@@ -136,7 +134,7 @@ input[type="submit"]:hover{
 	background: 
 		no-repeat radial-gradient(circle closest-side, #0fc959 90%, #0000) 0% 50%,
 		no-repeat radial-gradient(circle closest-side, #0cb04e 90%, #0000) 50% 50%,
-		no-repeat radial-gradient(circle closest-side, #037b33 90%, #0000) 100% 50%;
+		no-repeat radial-gradient(circle closest-side, #0a9943 90%, #0000) 100% 50%;
 	background-size: calc(100%/3) 100%;
 	animation: loading 1s infinite linear;
 }
