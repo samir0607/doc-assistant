@@ -7,9 +7,11 @@ import PromptSuggestion from './components/PromptSuggestion';
 
 import { Message } from "ai"
 import { useChat } from "ai/react"
+import { useRef, useEffect } from "react"
 
 const Home = () => {
 	const { append, isLoading, messages, input, handleInputChange, handleSubmit } = useChat()
+	const chatRef = useRef<HTMLDivElement>(null);
 	const noMessages = !messages || messages.length === 0;
 	const handlePrompt = ( promptText ) => {
 		const msg: Message = {
@@ -19,6 +21,13 @@ const Home = () => {
 		}
 		append(msg)
 	}
+
+	useEffect(() => {
+		if (chatRef.current) {
+			chatRef.current.scrollIntoView({ behavior: "smooth" });
+		}
+	}, [messages]);
+
 	return (
 		<main>
 			<Image src={rocketLogo} alt="Rocket.Chat" />
@@ -35,6 +44,7 @@ const Home = () => {
 					<>
 						{messages.map((message, index) => <Bubble key={`message-${index}`} message={message}/>)}
 						{isLoading && <LoadingBubble/>}
+						<div ref={chatRef} />
 					</>
 				)}
 			</section>
