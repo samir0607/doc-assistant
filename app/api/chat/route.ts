@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 				sort: {
 					$vector: embedding.data[0].embedding,
 				},
-				limit: 30
+				limit: 50
 			})
 		  const documents = await cursor.toArray()
 			const docsMap = documents?.map(doc => doc.text)
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
 			model: openai("gpt-4o-mini"),
 			messages: [template, ...messages]
 		})
-		return response.toDataStreamResponse()
+		return JSON.parse(JSON.stringify(response.toDataStreamResponse()))
 	} catch (e){
 		throw e
   }
