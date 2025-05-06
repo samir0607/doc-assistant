@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 				sort: {
 					$vector: embedding.data[0].embedding,
 				},
-				limit: 30
+				limit: 10
 			})
 		  const documents = await cursor.toArray()
 			const docsMap = documents?.map(doc => doc.text)
