@@ -1,5 +1,4 @@
 import { DataAPIClient } from "@datastax/astra-db-ts";
-import { PuppeteerWebBaseLoader } from "@langchain/community/document_loaders/web/puppeteer";
 import OpenAI from "openai"
 
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
@@ -10,7 +9,7 @@ type SimilarityMetric = "dot_product" | "cosine" | "euclidean"
 
 config();
 const { ASTRA_DB_APPLICATION_TOKEN,
-	ASTRA_DB_NAMESPACE, ASTRA_DB_COLLECTION, ASTRA_DB_API_ENDPOINT
+	ASTRA_DB_NAMESPACE, ASTRA_DB_COLLECTION, ASTRA_DB_API_ENDPOINT, SCRAPER_API_KEY
  } = process.env;
 const openai = new OpenAI();
 
@@ -74,20 +73,28 @@ const loadSampleData = async () => {
 }
 
 const scrapePage = async (url: string) => {
-	const loader = new PuppeteerWebBaseLoader(url, {
-		launchOptions: {
-			headless: true,
-		},
-		gotoOptions: {
-			waitUntil: "domcontentloaded"
-		},
-		evaluate: async (page, browser) => {
-			const result = await page.evaluate(() => document.body.innerHTML);
-			await browser.close();
-			return result;
+	if (!url) {
+		throw new Error('Please provide a valid URL.');
+	}
+
+	const scrapeUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&render=true`;
+
+		const response = await fetch(scrapeUrl);
+		if (!response.ok) {
+			throw new Error(`Failed to fetch page: ${response.status} ${response.statusText}`);
 		}
-	})
-	return ( await loader.scrape())?.replace(/<[^>]*>?/gm, '');
+
+		const htmlContent = await response.text();
+
+		const textContent = htmlContent
+			.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ') 
+			.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')   
+			.replace(/<\/(p|div|h[1-6]|li|br)>/gi, '\n')      
+			.replace(/<\/?[^>]+(>|$)/g, '')                    
+			.replace(/^\s+|\s+$/gm, '')
+			.replace(/\n{2,}/g, '\n\n');                       
+
+		return textContent;
 }
 
 createCollection().then(() => loadSampleData());
