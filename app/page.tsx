@@ -6,7 +6,7 @@ import LoadingBubble from './components/LoadingBubble';
 import PromptSuggestion from './components/PromptSuggestion';
 
 import { Message } from "ai"
-import { useChat } from "ai/react"
+import { useChat } from "@ai-sdk/react"
 import { useRef, useEffect } from "react"
 
 const Home = () => {
