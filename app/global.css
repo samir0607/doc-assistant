@@ -127,7 +127,7 @@ input[type="submit"]:hover{
 .prompt-suggestion-button:hover {
 	background-color: #ffffff;
 	border: none;
-	color: #bdf3d2;
+	color: #050505;
 	transition: 0.4s;
 }
 
