@@ -90,9 +90,8 @@ input[type="submit"]:hover{
 	font-size: 15px;
 	border: none;
 	color: #363737;
-	/* box-shadow: #1e1e1e 0 8px 24px; */
 	width: 80%;
-	text-align: justify;
+	text-align: left;
 }
 
 .bubble.user {
@@ -126,7 +125,6 @@ input[type="submit"]:hover{
 
 .prompt-suggestion-button:hover {
 	background-color: #ffffff;
-	border: none;
 	color: #050505;
 	transition: 0.4s;
 }
