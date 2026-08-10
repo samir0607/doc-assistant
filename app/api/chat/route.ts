@@ -1,70 +1,91 @@
-import OpenAI from "openai";
 import { openai } from "@ai-sdk/openai";
-import { streamText } from "ai";
-import { DataAPIClient } from "@datastax/astra-db-ts";
+import { createDataStreamResponse, streamText } from "ai";
 
-const {
-	ASTRA_DB_APPLICATION_TOKEN,
-	ASTRA_DB_NAMESPACE,
-	ASTRA_DB_COLLECTION,
-	ASTRA_DB_API_ENDPOINT,
-	OPENAI_API_KEY,
-} = process.env;
+import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { retrieve, toSources } from "@/lib/retrieval";
+import { buildSearchQuery } from "@/lib/query";
+import { systemPrompt } from "@/lib/prompts";
 
-const ai = new OpenAI({ apiKey: OPENAI_API_KEY})
+export const runtime = "nodejs";
+export const maxDuration = 30;
 
-const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN)
-const db = client.db(ASTRA_DB_API_ENDPOINT, { namespace: ASTRA_DB_NAMESPACE })
+const CHAT_MODEL = "gpt-4o-mini";
+const HISTORY_LIMIT = 12;
+
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60_000;
+
+const ROLES = ["user", "assistant", "system"] as const;
+
+type ChatMessage = { role: (typeof ROLES)[number]; content: string };
+
+const isChatMessage = (value: unknown): value is ChatMessage => {
+	if (typeof value !== "object" || value === null) return false;
+	const { role, content } = value as Record<string, unknown>;
+	return (
+		typeof content === "string" &&
+		ROLES.includes(role as (typeof ROLES)[number])
+	);
+};
 
 export async function POST(req: Request) {
-	try{
-		const { messages } = await req.json()
-		const latestMessage = messages[messages?.length-1]?.content
-		let docContext = ""
+	const limit = rateLimit({
+		key: clientKey(req),
+		limit: RATE_LIMIT,
+		windowMs: RATE_WINDOW_MS,
+	});
 
-		const embedding = await ai.embeddings.create({
-			model: "text-embedding-3-small",
-			input: latestMessage,
-			encoding_format: "float"
-		})
+	if (!limit.ok) {
+		return Response.json(
+			{ error: "Too many requests. Give it a moment and try again." },
+			{ status: 429, headers: { "retry-after": String(limit.retryAfter) } }
+		);
+	}
 
-		try{
-			const collection = await db.collection(ASTRA_DB_COLLECTION)
-			const cursor = collection.find(null, {
-				sort: {
-					$vector: embedding.data[0].embedding,
-				},
-				limit: 10
-			})
-		  const documents = await cursor.toArray()
-			const docsMap = documents?.map(doc => doc.text)
-			docContext = JSON.stringify(docsMap)
-		} catch (e){
-			console.error("Error querying Database...")
-			throw e
+	try {
+		const body = await req.json();
+		const messages: unknown = body?.messages;
+
+		if (!Array.isArray(messages) || !messages.every(isChatMessage)) {
+			return Response.json(
+				{ error: "Expected a non-empty `messages` array." },
+				{ status: 400 }
+			);
 		}
-		const template = {
-			role: "system",
-			content: `You are an AI assistant who knows about Rocket.Chat documentation. 
-			Use the context below to augment what you know about Rocket.Chat documentation.
-			The context will provide you with the most recent data from docs.rocket.chat the official documentation page of rocket.chat and others related to rocket chat apps like embedded chats.
-			If the context doesn't include the information don't answer based on your existing knowledge.
-			Format responses using markdown where applicable and don't return images.
-		---------------
-		START CONTEXT
-		${docContext}
-		END CONTEXT
-		---------------
-		QUESTION:  ${latestMessage}
-		---------------
-		`,
+
+		const latest = messages[messages.length - 1];
+		if (!latest || !latest.content.trim()) {
+			return Response.json({ error: "Empty message." }, { status: 400 });
 		}
-		const response = await streamText({
-			model: openai("gpt-4o-mini"),
-			messages: [template, ...messages]
-		})
-		return response.toDataStreamResponse()
-	} catch (e){
-		throw e
-  }
+
+		const query = await buildSearchQuery(messages);
+		const chunks = await retrieve(query);
+		const sources = toSources(chunks);
+
+		return createDataStreamResponse({
+			execute: (dataStream) => {
+				dataStream.writeMessageAnnotation({ sources });
+
+				const result = streamText({
+					model: openai(CHAT_MODEL),
+					messages: [
+						{ role: "system", content: systemPrompt(chunks, sources) },
+						...messages.slice(-HISTORY_LIMIT),
+					],
+				});
+
+				result.mergeIntoDataStream(dataStream);
+			},
+			onError: (error) => {
+				console.error("[api/chat] stream failed:", error);
+				return "Failed to generate a response.";
+			},
+		});
+	} catch (e) {
+		console.error("[api/chat] request failed:", e);
+		return Response.json(
+			{ error: "Failed to generate a response." },
+			{ status: 500 }
+		);
+	}
 }
