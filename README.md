@@ -71,6 +71,30 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Keeping the database awake
+
+An Astra serverless database hibernates after a stretch of inactivity, and the
+first request afterwards pays the wake-up cost. `GET /api/health` performs a real
+read against the collection and reports it:
+
+```json
+{ "status": "ok", "database": "reachable", "populated": true, "latencyMs": 271 }
+```
+
+It returns 503 if Astra cannot be reached, sets `cache-control: no-store`, and is
+declared `force-dynamic` — a cached 200 would never touch the database and defeat
+the point.
+
+[`vercel.json`](vercel.json) schedules it every 15 minutes. **Minute-level cron
+schedules need a Vercel Pro plan**; on Hobby, cron jobs run at most once a day,
+so use an external pinger (UptimeRobot, cron-job.org) or a scheduled GitHub
+Actions workflow hitting the same URL.
+
+Set `CRON_SECRET` in the environment to close the endpoint — Vercel Cron sends it
+as `Authorization: Bearer $CRON_SECRET` automatically, and requests without it
+then get a 401. Left unset, the endpoint is open but rate limited to 12 requests
+per minute per IP, on a budget separate from `/api/chat`.
+
 ### Tests
 
 ```bash
@@ -90,7 +114,9 @@ Covers the pure half of the pipeline: `llms.txt` parsing, frontmatter handling, 
 | [`lib/retrieval.ts`](lib/retrieval.ts) | Embedding, vector search, ranking, source numbering |
 | [`lib/prompts.ts`](lib/prompts.ts) | System prompt, context rendering, query condensation |
 | [`lib/rateLimit.ts`](lib/rateLimit.ts) | Per-IP sliding window |
+| [`lib/cronAuth.ts`](lib/cronAuth.ts) | Bearer-secret check for scheduled calls |
 | [`scripts/discoverUrls.ts`](scripts/discoverUrls.ts) | Discovery CLI |
 | [`scripts/loadDB.ts`](scripts/loadDB.ts) | Seed CLI |
 | [`scripts/verifyIndex.ts`](scripts/verifyIndex.ts) | Coverage check |
 | [`app/api/chat/route.ts`](app/api/chat/route.ts) | HTTP handling and streaming only |
+| [`app/api/health/route.ts`](app/api/health/route.ts) | Astra reachability and keep-alive |
