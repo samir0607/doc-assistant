@@ -120,7 +120,7 @@ const seed = async (fresh: boolean): Promise<Stats> => {
 		stats.pages += 1;
 		const doc = { ...markdown, url: pageUrl(markdown.url) };
 
-		const rejection = docRejectionReason(doc);
+		const rejection = markdown.error ?? docRejectionReason(doc);
 		if (rejection) {
 			console.warn(`! ${doc.url} — ${rejection}, skipping`);
 			stats.failed.push(`${doc.url} (${rejection})`);
@@ -173,9 +173,22 @@ const main = async () => {
 		`\nDone. ${stats.pages} pages · ${stats.inserted} embedded · ` +
 			`${stats.unchanged} unchanged · ${stats.deleted} removed`
 	);
-	if (stats.failed.length > 0) {
-		console.warn(`\nPages that yielded no usable text:`);
-		for (const url of stats.failed) console.warn(`  - ${url}`);
+	if (stats.failed.length === 0) {
+		console.log(`Every page in lib/doc-urls.json was indexed.`);
+		return;
+	}
+
+	console.warn(`\n${stats.failed.length} pages were not indexed:`);
+	for (const url of stats.failed) console.warn(`  - ${url}`);
+
+	// A page that was merely short is a fact about the docs. A page we could not
+	// fetch means coverage is incomplete, which the exit code should say.
+	const unreachable = stats.failed.filter((f) => !/only \d+ chars/.test(f));
+	if (unreachable.length > 0) {
+		console.error(
+			`\n${unreachable.length} of those could not be fetched — coverage is incomplete.`
+		);
+		process.exitCode = 1;
 	}
 };
 
