@@ -52,6 +52,24 @@ const ensureCollection = async (db: Db, fresh: boolean): Promise<Collection> => 
 	return db.collection(name);
 };
 
+/**
+ * URLs with stored chunks that the page list no longer contains — pages that
+ * were removed upstream, renamed, or excluded. Without pruning, their chunks
+ * stay in the index and keep being retrieved.
+ */
+const staleUrls = async (
+	collection: Collection,
+	expected: ReadonlySet<string>
+): Promise<string[]> => {
+	const cursor = collection.find({}, { projection: { url: 1 } });
+	const seen = new Set<string>();
+	for await (const doc of cursor) {
+		const url = doc.url as string;
+		if (url && !expected.has(url)) seen.add(url);
+	}
+	return [...seen];
+};
+
 const existingHashes = async (
 	collection: Collection,
 	url: string
@@ -148,6 +166,17 @@ const seed = async (fresh: boolean): Promise<Stats> => {
 	}
 
 	await flush(true);
+
+	if (!fresh) {
+		const expected = new Set(DOC_URLS.map(pageUrl));
+		const stale = await staleUrls(collection, expected);
+		for (const url of stale) {
+			const { deletedCount } = await collection.deleteMany({ url });
+			stats.deleted += deletedCount ?? 0;
+			console.log(`- pruned ${url}`);
+		}
+	}
+
 	return stats;
 };
 
