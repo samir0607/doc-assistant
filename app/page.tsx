@@ -16,7 +16,7 @@ import {
 	PlusIcon,
 	RefreshIcon,
 } from "./components/Icons";
-import { DOCS_HOME } from "@/lib/sources";
+import { DOCS_HOME } from "@/lib/links";
 
 const PIN_THRESHOLD = 80;
 
