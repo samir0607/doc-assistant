@@ -26,6 +26,8 @@ const DEFAULTS = {
 
 const HEADING = /^(#{1,6})\s+(.+?)\s*$/;
 const SECTION_SEPARATOR = " > ";
+const MAX_HEADING_CHARS = 120;
+const MAX_PATH_CHARS = 400;
 
 export const hashContent = (...parts: string[]): string =>
 	createHash("sha256").update(parts.join("\n \n")).digest("hex");
@@ -40,13 +42,13 @@ export const sectionPath = (
 ): string => {
 	const segments: string[] = [];
 	for (const segment of [title, ...headings]) {
-		const value = segment?.trim();
+		const value = segment?.trim().slice(0, MAX_HEADING_CHARS);
 		if (!value) continue;
 		const previous = segments[segments.length - 1];
 		if (previous && previous.toLowerCase() === value.toLowerCase()) continue;
 		segments.push(value);
 	}
-	return segments.join(SECTION_SEPARATOR);
+	return segments.join(SECTION_SEPARATOR).slice(0, MAX_PATH_CHARS);
 };
 
 export const splitSections = (text: string, title: string): Section[] => {

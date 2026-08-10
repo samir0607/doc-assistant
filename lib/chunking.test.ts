@@ -183,3 +183,32 @@ describe("sectionPath", () => {
 		expect(sectionPath("Deploy", [])).toBe("Deploy");
 	});
 });
+
+describe("sectionPath bounds", () => {
+	it("truncates a single absurdly long heading", () => {
+		const heading = "x".repeat(5000);
+		expect(sectionPath("Title", [heading]).length).toBeLessThanOrEqual(400);
+	});
+
+	it("bounds the whole path however deep the hierarchy", () => {
+		const deep = Array.from({ length: 40 }, (_, i) => `Level ${i} `.repeat(20));
+		expect(sectionPath("Title", deep).length).toBeLessThanOrEqual(400);
+	});
+
+	it("keeps ordinary paths untouched", () => {
+		expect(sectionPath("Deploy", ["Docker"])).toBe("Deploy > Docker");
+	});
+});
+
+describe("chunkDocument bounds", () => {
+	it("keeps embedded text small enough for the embeddings API", () => {
+		// A line starting with '#' is read as a heading, and docs contain shell
+		// comments and minified blobs. Without a cap, one such line became a
+		// section path of tens of thousands of characters and the whole seed run
+		// failed on 'maximum input length is 8192 tokens'.
+		const monstrous = `# ${"a".repeat(60_000)}\n\nbody text here`;
+		for (const chunk of chunkDocument(doc(monstrous))) {
+			expect(chunk.text.length).toBeLessThan(2500);
+		}
+	});
+});
