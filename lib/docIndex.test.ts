@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pageUrl, parseLlmsTxt } from "./docIndex";
+import { decodeUrlEntities, pageUrl, parseLlmsTxt } from "./docIndex";
 
 const sample = `# Rocket-Chat Documentation
 
@@ -67,5 +67,36 @@ describe("pageUrl", () => {
 		expect(pageUrl("https://docs.rocket.chat/docs/deploy")).toBe(
 			"https://docs.rocket.chat/docs/deploy"
 		);
+	});
+});
+
+describe("decodeUrlEntities", () => {
+	it("restores a slug written with numeric entities", () => {
+		expect(
+			decodeUrlEntities(
+				"https://docs.rocket.chat/docs/nomea&#231;&#227;o-do-encarregado.md"
+			)
+		).toBe("https://docs.rocket.chat/docs/nomeação-do-encarregado.md");
+	});
+
+	it("handles hex entities and escaped ampersands", () => {
+		expect(decodeUrlEntities("https://x/a&#xE7;o.md")).toBe("https://x/aço.md");
+		expect(decodeUrlEntities("https://x/a?b=1&amp;c=2")).toBe(
+			"https://x/a?b=1&c=2"
+		);
+	});
+
+	it("leaves a plain url untouched", () => {
+		const url = "https://docs.rocket.chat/docs/deploy.md";
+		expect(decodeUrlEntities(url)).toBe(url);
+	});
+});
+
+describe("parseLlmsTxt url decoding", () => {
+	it("decodes entities so the url actually resolves", () => {
+		const entries = parseLlmsTxt(
+			"- [Nomeação](https://docs.rocket.chat/docs/nomea&#231;&#227;o.md): x"
+		);
+		expect(entries[0].url).toBe("https://docs.rocket.chat/docs/nomeação.md");
 	});
 });

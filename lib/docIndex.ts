@@ -12,18 +12,33 @@ export const LLMS_INDEXES: readonly string[] = [
 /**
  * Articles that are published but absent from llms.txt.
  *
- * Found by cross-checking the index against an independent crawl of both hosts:
- * of the URLs only the crawl reached, all but these two return 404 for their
- * .md, because they are navigation categories rather than articles. Re-run that
- * comparison if coverage is ever in question — llms.txt is authoritative for
- * practically everything, but it is not exhaustive.
+ * Found by cross-checking the index against an independent crawl of both hosts.
+ * Of the URLs only the crawl reached, every other one returns 404 for its .md,
+ * because they are navigation categories rather than articles and their content
+ * lives in the children llms.txt does list. Re-run that comparison if coverage
+ * is ever in question — llms.txt is authoritative for very nearly everything,
+ * but not quite all of it.
  */
 export const EXTRA_MARKDOWN_URLS: readonly string[] = [
 	"https://developer.rocket.chat/docs/deprecated-parameters.md",
-	"https://docs.rocket.chat/docs/nomea%C3%A7%C3%A3o-do-encarregado-pelo-tratamento-de-dados-pessoais.md",
 ];
 
 const ENTRY = /^\s*-\s*\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)\s*(?::\s*(.*))?$/;
+
+/**
+ * llms.txt writes non-ASCII characters in URLs as HTML entities, so a page whose
+ * slug contains "ç" is listed as "nomea&#231;&#227;o" — a URL that 404s if used
+ * verbatim. Decoding restores the real path, which fetch then encodes itself.
+ */
+export const decodeUrlEntities = (url: string): string =>
+	url
+		.replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
+			String.fromCodePoint(Number.parseInt(hex, 16))
+		)
+		.replace(/&#(\d+);/g, (_, dec) =>
+			String.fromCodePoint(Number.parseInt(dec, 10))
+		)
+		.replace(/&amp;/g, "&");
 
 export const parseLlmsTxt = (text: string): DocEntry[] => {
 	const entries: DocEntry[] = [];
@@ -33,7 +48,8 @@ export const parseLlmsTxt = (text: string): DocEntry[] => {
 		const match = ENTRY.exec(line);
 		if (!match) continue;
 
-		const [, title, url, description] = match;
+		const [, title, rawUrl, description] = match;
+		const url = decodeUrlEntities(rawUrl);
 		if (seen.has(url)) continue;
 		seen.add(url);
 
