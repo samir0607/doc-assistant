@@ -34,6 +34,21 @@ const normalize = (text: string) => text.replace(/[ \t]+/g, " ").trim();
 
 type Section = { path: string; body: string };
 
+export const sectionPath = (
+	title: string,
+	headings: readonly (string | undefined)[]
+): string => {
+	const segments: string[] = [];
+	for (const segment of [title, ...headings]) {
+		const value = segment?.trim();
+		if (!value) continue;
+		const previous = segments[segments.length - 1];
+		if (previous && previous.toLowerCase() === value.toLowerCase()) continue;
+		segments.push(value);
+	}
+	return segments.join(SECTION_SEPARATOR);
+};
+
 export const splitSections = (text: string, title: string): Section[] => {
 	const sections: Section[] = [];
 	const stack: string[] = [];
@@ -43,8 +58,7 @@ export const splitSections = (text: string, title: string): Section[] => {
 		const joined = body.join("\n").trim();
 		body = [];
 		if (!joined) return;
-		const path = [title, ...stack].filter(Boolean).join(SECTION_SEPARATOR);
-		sections.push({ path, body: joined });
+		sections.push({ path: sectionPath(title, stack), body: joined });
 	};
 
 	for (const line of text.split("\n")) {

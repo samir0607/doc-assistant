@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { chunkDocument, hashContent, splitSections } from "./chunking";
+import {
+	chunkDocument,
+	hashContent,
+	sectionPath,
+	splitSections,
+} from "./chunking";
 
 const doc = (text: string) => ({
 	url: "https://docs.rocket.chat/docs/deploy",
@@ -146,5 +151,35 @@ describe("chunkDocument", () => {
 describe("hashContent", () => {
 	it("distinguishes different field groupings", () => {
 		expect(hashContent("a", "bc")).not.toBe(hashContent("ab", "c"));
+	});
+});
+
+describe("sectionPath", () => {
+	it("joins the title and heading hierarchy", () => {
+		expect(sectionPath("Deploy", ["Docker", "Prerequisites"])).toBe(
+			"Deploy > Docker > Prerequisites"
+		);
+	});
+
+	it("collapses a heading that repeats the page title", () => {
+		expect(sectionPath("Add License", ["Add License"])).toBe("Add License");
+		expect(sectionPath("Add License", ["Add License", "Changelog"])).toBe(
+			"Add License > Changelog"
+		);
+	});
+
+	it("compares case-insensitively when collapsing", () => {
+		expect(sectionPath("Deploy Rocket.Chat", ["deploy rocket.chat"])).toBe(
+			"Deploy Rocket.Chat"
+		);
+	});
+
+	it("keeps a repeat that is not adjacent", () => {
+		expect(sectionPath("API", ["Users", "API"])).toBe("API > Users > API");
+	});
+
+	it("skips empty and missing levels", () => {
+		expect(sectionPath("", [undefined, "Docker"])).toBe("Docker");
+		expect(sectionPath("Deploy", [])).toBe("Deploy");
 	});
 });
