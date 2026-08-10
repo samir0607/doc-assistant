@@ -85,10 +85,11 @@ It returns 503 if Astra cannot be reached, sets `cache-control: no-store`, and i
 declared `force-dynamic` — a cached 200 would never touch the database and defeat
 the point.
 
-[`vercel.json`](vercel.json) schedules it every 15 minutes. **Minute-level cron
-schedules need a Vercel Pro plan**; on Hobby, cron jobs run at most once a day,
-so use an external pinger (UptimeRobot, cron-job.org) or a scheduled GitHub
-Actions workflow hitting the same URL.
+[`vercel.json`](vercel.json) runs it once a day at 06:00 UTC — the most the
+Hobby plan allows, and comfortably inside Astra's inactivity window, which is
+measured in days rather than minutes. Hobby fires the job at some point within
+the given hour rather than exactly on the hour, which makes no difference to a
+keep-alive. Minute-level schedules need a Pro plan.
 
 Set `CRON_SECRET` in the environment to close the endpoint — Vercel Cron sends it
 as `Authorization: Bearer $CRON_SECRET` automatically, and requests without it
