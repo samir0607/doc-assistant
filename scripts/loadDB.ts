@@ -3,7 +3,9 @@ import { DataAPIClient, type Collection, type Db } from "@datastax/astra-db-ts";
 
 import { requireEnv } from "../lib/env";
 import { chunkDocument, type Chunk } from "../lib/chunking";
-import { scrapePages, type ScrapedDoc } from "../lib/scrape";
+import { fetchDocs } from "../lib/docFetch";
+import { pageUrl } from "../lib/docIndex";
+import { type SourceDoc } from "../lib/markdown";
 import { DOC_URLS } from "../lib/sources";
 import {
 	embed,
@@ -86,9 +88,8 @@ const chunksToDocuments = async (chunks: Chunk[]) => {
 
 const MIN_DOC_CHARS = 500;
 
-const rejectDoc = (doc: ScrapedDoc): string | null => {
-	if (doc.blocked) return "bot-check interstitial";
-	if (!doc.text) return "no text extracted";
+const rejectDoc = (doc: SourceDoc): string | null => {
+	if (!doc.text) return "empty or unreachable";
 	if (doc.text.length < MIN_DOC_CHARS) {
 		return `only ${doc.text.length} chars`;
 	}
@@ -105,8 +106,29 @@ const seed = async (fresh: boolean): Promise<Stats> => {
 		failed: [],
 	};
 
-	for await (const doc of scrapePages(DOC_URLS)) {
+	let pending: Chunk[] = [];
+
+	const flush = async (force: boolean) => {
+		while (pending.length >= EMBED_BATCH || (force && pending.length > 0)) {
+			const batch = pending.slice(0, EMBED_BATCH);
+			pending = pending.slice(EMBED_BATCH);
+
+			const documents = await chunksToDocuments(batch);
+			for (let i = 0; i < documents.length; i += INSERT_BATCH) {
+				await collection.insertMany(documents.slice(i, i + INSERT_BATCH), {
+					ordered: false,
+				});
+			}
+			stats.inserted += documents.length;
+			console.log(
+				`  … ${stats.inserted} chunks embedded from ${stats.pages} pages`
+			);
+		}
+	};
+
+	for await (const markdown of fetchDocs(DOC_URLS)) {
 		stats.pages += 1;
+		const doc = { ...markdown, url: pageUrl(markdown.url) };
 
 		const rejection = rejectDoc(doc);
 		if (rejection) {
@@ -117,34 +139,25 @@ const seed = async (fresh: boolean): Promise<Stats> => {
 
 		const chunks = chunkDocument(doc);
 		const wanted = new Set(chunks.map((chunk) => chunk.contentHash));
-		const stored = fresh ? new Set<string>() : await existingHashes(collection, doc.url);
+		const stored = fresh
+			? new Set<string>()
+			: await existingHashes(collection, doc.url);
 
 		const toInsert = chunks.filter((chunk) => !stored.has(chunk.contentHash));
 		const toDelete = [...stored].filter((id) => !wanted.has(id));
 
-		console.log(
-			`• ${doc.title || doc.url} — ${chunks.length} chunks ` +
-				`(+${toInsert.length} new, =${chunks.length - toInsert.length} unchanged, ` +
-				`-${toDelete.length} stale)`
-		);
-
-		if (toInsert.length > 0) {
-			const documents = await chunksToDocuments(toInsert);
-			for (let i = 0; i < documents.length; i += INSERT_BATCH) {
-				const batch = documents.slice(i, i + INSERT_BATCH);
-				await collection.insertMany(batch, { ordered: false });
-			}
-			stats.inserted += documents.length;
-		}
-
 		stats.unchanged += chunks.length - toInsert.length;
+		pending.push(...toInsert);
 
 		if (toDelete.length > 0) {
 			await collection.deleteMany({ _id: { $in: toDelete } });
 			stats.deleted += toDelete.length;
 		}
+
+		await flush(false);
 	}
 
+	await flush(true);
 	return stats;
 };
 
