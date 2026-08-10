@@ -24,7 +24,7 @@ Create a serverless **vector** database in [Astra](https://astra.datastax.com/) 
 
 ```.env
 ASTRA_DB_NAMESPACE=""
-ASTRA_DB_COLLECTION=""
+ASTRA_DB_COLLECTION="" 
 ASTRA_DB_API_ENDPOINT=""
 ASTRA_DB_APPLICATION_TOKEN=""
 OPENAI_API_KEY=""
