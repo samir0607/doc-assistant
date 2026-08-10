@@ -51,6 +51,14 @@ export const firstHeading = (body: string): string => {
 	return match ? match[1].trim() : "";
 };
 
+export const MIN_DOC_CHARS = 100;
+
+export const docRejectionReason = (doc: SourceDoc): string | null => {
+	if (!doc.text) return "empty or unreachable";
+	if (doc.text.length < MIN_DOC_CHARS) return `only ${doc.text.length} chars`;
+	return null;
+};
+
 export const markdownToDoc = (url: string, raw: string): SourceDoc => {
 	const { frontmatter, body } = parseFrontmatter(raw);
 	const text = stripIndexNotice(body).trim();

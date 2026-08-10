@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	docRejectionReason,
 	firstHeading,
 	markdownToDoc,
 	parseFrontmatter,
@@ -120,5 +121,21 @@ describe("markdownToDoc without frontmatter", () => {
 		expect(markdownToDoc("https://x/apidocs/add-license.md", raw).title).toBe(
 			"Add License"
 		);
+	});
+});
+
+describe("docRejectionReason", () => {
+	const doc = (text: string) => ({ url: "https://x/docs/a", title: "A", text });
+
+	it("accepts a short but real page", () => {
+		expect(docRejectionReason(doc("x".repeat(300)))).toBeNull();
+	});
+
+	it("rejects an empty page as unreachable", () => {
+		expect(docRejectionReason(doc(""))).toBe("empty or unreachable");
+	});
+
+	it("rejects a stub too small to be a page", () => {
+		expect(docRejectionReason(doc("Coming soon."))).toBe("only 12 chars");
 	});
 });

@@ -5,7 +5,7 @@ import { requireEnv } from "../lib/env";
 import { chunkDocument, type Chunk } from "../lib/chunking";
 import { fetchDocs } from "../lib/docFetch";
 import { pageUrl } from "../lib/docIndex";
-import { type SourceDoc } from "../lib/markdown";
+import { docRejectionReason } from "../lib/markdown";
 import { DOC_URLS } from "../lib/sources";
 import {
 	embed,
@@ -86,16 +86,6 @@ const chunksToDocuments = async (chunks: Chunk[]) => {
 	return documents;
 };
 
-const MIN_DOC_CHARS = 500;
-
-const rejectDoc = (doc: SourceDoc): string | null => {
-	if (!doc.text) return "empty or unreachable";
-	if (doc.text.length < MIN_DOC_CHARS) {
-		return `only ${doc.text.length} chars`;
-	}
-	return null;
-};
-
 const seed = async (fresh: boolean): Promise<Stats> => {
 	const collection = await ensureCollection(getDb(), fresh);
 	const stats: Stats = {
@@ -130,7 +120,7 @@ const seed = async (fresh: boolean): Promise<Stats> => {
 		stats.pages += 1;
 		const doc = { ...markdown, url: pageUrl(markdown.url) };
 
-		const rejection = rejectDoc(doc);
+		const rejection = docRejectionReason(doc);
 		if (rejection) {
 			console.warn(`! ${doc.url} — ${rejection}, skipping`);
 			stats.failed.push(`${doc.url} (${rejection})`);
