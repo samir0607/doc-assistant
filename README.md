@@ -52,11 +52,14 @@ OPENAI_API_KEY=""
 npm run discover          # refresh the page list from llms.txt
 npm run seed              # incremental: only new or changed chunks are embedded
 npm run seed -- --fresh   # drop the collection and rebuild from scratch
+npm run verify            # check the index against the page list
 ```
 
 `discover` reads `llms.txt` from each host — an index every page is listed in — and writes the result to [`lib/doc-urls.json`](lib/doc-urls.json). Two HTTP requests, authoritative, no crawling. Review the diff, then seed.
 
-`seed` is incremental by content hash: adding pages costs only those pages, and a run over unchanged docs embeds nothing. Pages that come back empty or unreachable are reported and skipped rather than indexed.
+`seed` is incremental by content hash: adding pages costs only those pages, and a run over unchanged docs embeds nothing. It exits non-zero if any page could not be fetched, so a silent run means every listed page was indexed.
+
+`verify` closes the loop from the other side: it reads back every stored chunk and compares the URLs it finds against `lib/doc-urls.json`, reporting listed pages that are missing and indexed pages that are no longer listed.
 
 To change what gets indexed, add a host to `LLMS_INDEXES` in [`lib/docIndex.ts`](lib/docIndex.ts) and re-run `discover`. To drop pages from an otherwise good index, add a pattern to `EXCLUDE` in [`lib/sources.ts`](lib/sources.ts) — that is how tag listing pages are kept out.
 
@@ -89,4 +92,5 @@ Covers the pure half of the pipeline: `llms.txt` parsing, frontmatter handling, 
 | [`lib/rateLimit.ts`](lib/rateLimit.ts) | Per-IP sliding window |
 | [`scripts/discoverUrls.ts`](scripts/discoverUrls.ts) | Discovery CLI |
 | [`scripts/loadDB.ts`](scripts/loadDB.ts) | Seed CLI |
+| [`scripts/verifyIndex.ts`](scripts/verifyIndex.ts) | Coverage check |
 | [`app/api/chat/route.ts`](app/api/chat/route.ts) | HTTP handling and streaming only |
