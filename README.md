@@ -1,10 +1,10 @@
 ## 🚀 Rocket.Chat AI Docs Assistant
 
-Scrapes the Rocket.Chat documentation, indexes it as embeddings in AstraDB, and answers questions from it with cited, streaming responses.
+Indexes the full Rocket.Chat documentation as embeddings in AstraDB and answers questions from it with cited, streaming responses. 1,277 pages: the user docs, the developer guides, and the complete REST API reference.
 
 ## ✨ Features
 
-📄 **Web scraping** → Renders each docs page with Puppeteer and detects bot-check interstitials so a blocked page is never indexed as content.
+📄 **Markdown source of truth** → Both docs hosts publish every page as clean markdown at `<page>.md` and list them all in `llms.txt`. The pipeline reads those instead of scraping rendered HTML, so ingestion is a plain `fetch`: no browser, no bot-check interstitials, no navigation chrome mixed into the content, and byte-identical output run to run.
 
 🔀 **Heading-aware chunking** → Splits on the document's heading hierarchy at ~1200 characters, and carries the heading path into each chunk so "how do I deploy" matches a section whose body never says "deploy".
 
@@ -44,16 +44,21 @@ ASTRA_DB_APPLICATION_TOKEN=""
 OPENAI_API_KEY=""
 ```
 
-> The collection is created for you on first seed, with 1536 dimensions and the `cosine` metric. No scraping API key is needed — pages are rendered locally with Puppeteer.
+> The collection is created for you on first seed, with 1536 dimensions and the `cosine` metric. No scraping key or browser is needed.
 
 ### Build the index
 
 ```bash
+npm run discover          # refresh the page list from llms.txt
 npm run seed              # incremental: only new or changed chunks are embedded
 npm run seed -- --fresh   # drop the collection and rebuild from scratch
 ```
 
-Pages to index live in [`lib/sources.ts`](lib/sources.ts) — add a URL and re-run `npm run seed`; unchanged pages are skipped.
+`discover` reads `llms.txt` from each host — an index every page is listed in — and writes the result to [`lib/doc-urls.json`](lib/doc-urls.json). Two HTTP requests, authoritative, no crawling. Review the diff, then seed.
+
+`seed` is incremental by content hash: adding pages costs only those pages, and a run over unchanged docs embeds nothing. Pages that come back empty or unreachable are reported and skipped rather than indexed.
+
+To change what gets indexed, add a host to `LLMS_INDEXES` in [`lib/docIndex.ts`](lib/docIndex.ts) and re-run `discover`. To drop pages from an otherwise good index, add a pattern to `EXCLUDE` in [`lib/sources.ts`](lib/sources.ts) — that is how tag listing pages are kept out.
 
 ### Run it
 
@@ -69,16 +74,19 @@ Open [http://localhost:3000](http://localhost:3000).
 npm test
 ```
 
-Covers the pure half of the pipeline: HTML extraction, challenge-page detection, chunking and hash stability, retrieval ranking, citation numbering, and the rate limiter.
+Covers the pure half of the pipeline: `llms.txt` parsing, frontmatter handling, chunking and hash stability, retrieval ranking, citation numbering, and the rate-limit window.
 
 ## Project layout
 
 | Path | Responsibility |
 | --- | --- |
-| [`lib/scrape.ts`](lib/scrape.ts) | HTML → heading-annotated text; Puppeteer fetching |
+| [`lib/docIndex.ts`](lib/docIndex.ts) | `llms.txt` parsing and page discovery |
+| [`lib/markdown.ts`](lib/markdown.ts) | Frontmatter parsing, boilerplate stripping |
+| [`lib/docFetch.ts`](lib/docFetch.ts) | Concurrent markdown fetching with retries |
 | [`lib/chunking.ts`](lib/chunking.ts) | Section splitting, packing, content hashing |
 | [`lib/retrieval.ts`](lib/retrieval.ts) | Embedding, vector search, ranking, source numbering |
 | [`lib/prompts.ts`](lib/prompts.ts) | System prompt, context rendering, query condensation |
 | [`lib/rateLimit.ts`](lib/rateLimit.ts) | Per-IP sliding window |
+| [`scripts/discoverUrls.ts`](scripts/discoverUrls.ts) | Discovery CLI |
 | [`scripts/loadDB.ts`](scripts/loadDB.ts) | Seed CLI |
 | [`app/api/chat/route.ts`](app/api/chat/route.ts) | HTTP handling and streaming only |
