@@ -55,14 +55,36 @@
 	--radius-xl: 24px;
 	--radius-pill: 999px;
 
-	/* Rhythm */
-	--content-width: 800px;
+	/* Rhythm — 760px at 16px lands prose around 70 characters per line, which is
+	   the comfortable reading measure. Code blocks and tables opt out below. */
+	--content-width: 760px;
 	--header-height: 60px;
+	--measure: 70ch;
 
-	--font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
-		Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
-	--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-		"Liberation Mono", monospace;
+	/* Inter and JetBrains Mono are self-hosted by next/font; the stacks below
+	   are what renders before they load and if they fail. */
+	--font-sans: var(--font-sans-loaded), ui-sans-serif, -apple-system,
+		BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-mono: var(--font-mono-loaded), ui-monospace, SFMono-Regular, "SF Mono",
+		Menlo, Consolas, "Liberation Mono", monospace;
+
+	/* Type scale. Ratios are tuned per step rather than geometric, because a
+	   strict scale puts h3 and body too close together at these sizes. */
+	--text-xs: 0.75rem; /* 12px */
+	--text-sm: 0.8125rem; /* 13px */
+	--text-base: 0.9375rem; /* 15px */
+	--text-md: 1rem; /* 16px */
+	--text-lg: 1.125rem; /* 18px */
+	--text-xl: 1.3125rem; /* 21px */
+	--text-2xl: 1.75rem; /* 28px */
+
+	--leading-tight: 1.25;
+	--leading-snug: 1.4;
+	--leading-normal: 1.65;
+
+	--tracking-tight: -0.02em;
+	--tracking-snug: -0.011em;
+	--tracking-wide: 0.04em;
 
 	--ease: cubic-bezier(0.22, 1, 0.36, 1);
 }

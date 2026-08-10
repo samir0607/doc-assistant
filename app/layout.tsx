@@ -1,6 +1,20 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./global.css";
+
+const sans = Inter({
+	subsets: ["latin"],
+	display: "swap",
+	variable: "--font-sans-loaded",
+});
+
+const mono = JetBrains_Mono({
+	subsets: ["latin"],
+	weight: ["400", "500"],
+	display: "swap",
+	variable: "--font-mono-loaded",
+});
 
 export const metadata: Metadata = {
 	title: "R8 · Rocket.Chat Docs Assistant",
@@ -19,7 +33,7 @@ export const viewport: Viewport = {
 
 const RootLayout = ({ children }: { children: ReactNode }) => {
 	return (
-		<html lang="en">
+		<html lang="en" className={`${sans.variable} ${mono.variable}`}>
 			<body>{children}</body>
 		</html>
 	);
