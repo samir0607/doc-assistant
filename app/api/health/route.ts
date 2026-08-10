@@ -4,8 +4,6 @@ import { getCollection } from "@/lib/retrieval";
 
 export const runtime = "nodejs";
 export const maxDuration = 15;
-// A cached response would return 200 without touching Astra, which defeats the
-// entire point of the endpoint.
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -22,8 +20,6 @@ export async function GET(req: Request) {
 		);
 	}
 
-	// Namespaced so keep-alive pings do not spend the chat endpoint's budget for
-	// the same IP — both limiters share one in-process store.
 	const limit = rateLimit({
 		key: `health:${clientKey(req)}`,
 		limit: RATE_LIMIT,
@@ -43,9 +39,6 @@ export async function GET(req: Request) {
 	const startedAt = Date.now();
 
 	try {
-		// A real read, not just client construction: this is what keeps a
-		// serverless Astra database from hibernating, and it proves the
-		// collection exists and has content.
 		const doc = await getCollection().findOne({}, { projection: { _id: 1 } });
 
 		return Response.json(
